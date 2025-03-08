@@ -1,10 +1,12 @@
-import NextAuth from 'next-auth';
-import { authConfig } from './app/auth';
+import { auth } from './app/auth'
 
-export const runtime = 'nodejs';
-
-export default NextAuth(authConfig).auth;
-
-export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
-}; 
+export default auth((req) => {
+  const isLoggedIn = !!req.auth?.user
+  const isOnDashboard = req.nextUrl.pathname.startsWith('/course')
+  
+  if (isOnDashboard && !isLoggedIn) {
+    return Response.redirect(new URL('/login', req.nextUrl))
+  }
+  
+  return null
+}) 

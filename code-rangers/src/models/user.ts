@@ -1,23 +1,36 @@
 import mongoose from 'mongoose';
 
-const UserSchema = new mongoose.Schema({
-  name: {
+const userSchema = new mongoose.Schema({
+  firstName: {
     type: String,
-    required: true,
+    required: [true, 'First name is required'],
   },
-  username: {
+  lastName: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, 'Last name is required'],
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email is required'],
     unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+  },
+  username: {
+    type: String,
+    required: [true, 'Username is required'],
+    unique: true,
+    minlength: [8, 'Username must be at least 8 characters long'],
   },
   password: {
     type: String,
-    required: true,
+    required: [true, 'Password is required'],
+  },
+  
+  createdAt: {
+    type: Date,
+    default: Date.now,
   },
 
 //   contact: {
@@ -41,4 +54,7 @@ const UserSchema = new mongoose.Schema({
 //   },
 });
 
-export default mongoose.models.User || mongoose.model('User', UserSchema);
+// Check if model exists before creating a new one
+const User = mongoose.models.User || mongoose.model('User', userSchema);
+
+export default User;

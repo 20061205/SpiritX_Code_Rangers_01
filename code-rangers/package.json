@@ -9,19 +9,17 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.2.1",
-    "next-auth": "^4.24.11",
+    "@auth/core": "^0.34.2",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.2",
     "mongoose": "^8.12.1",
     "next": "15.2.1",
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2"
-    "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
@@ -29,8 +27,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.2.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
     "tailwindcss": "^4",
     "typescript": "^5"
   }
