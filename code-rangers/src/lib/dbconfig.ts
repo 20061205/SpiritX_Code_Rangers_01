@@ -8,7 +8,7 @@ const connectMongo = async () => {
    
   }
   console.log("Alrjzdnljy connected to mongo");
-  return mongoose.connect(process.env.MONGO_URL as string);
+  return mongoose.connect(process.env.MONGO_URI as string);
 };
 
 export default connectMongo;

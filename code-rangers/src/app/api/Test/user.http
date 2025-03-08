@@ -1,0 +1,14 @@
+### Get all users
+GET http://localhost:3000/api/user
+
+### Update a user
+PATCH http://localhost:3000/api/user
+Content-Type: application/json
+
+{
+  "userId": "your-user-id",
+  "newUsername": "new-username"
+}
+
+### Delete a user
+DELETE http://localhost:3000/api/user?userId=your-user-id

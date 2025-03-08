@@ -1,18 +1,14 @@
-import { User } from '@/models/models';
+import User from '@/models/user';
 import connectMongo from '@/lib/dbconfig';
 
 import clientPromise from '@/lib/mongodb'; // Connect to MongoDB
 import NextAuth, { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import GoogleProvider from 'next-auth/providers/google';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-import { GoogleProfile } from 'next-auth/providers/google';
-
-
-
+import bcrypt from 'bcryptjs';
 
 interface Credentials {
-  email: string;
+  username: string;
   password: string;
 }
 
@@ -21,46 +17,36 @@ interface UserType {
   email: string;
   username: string;
   password: string;
-  enrolledCourses: string[];
+  // enrolledCourses: string[];
+  role: string;
 }
 
 const options: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      profile(profile: GoogleProfile) {
-        console.log(profile);
-        return{
-          ...profile,
-          role: profile.role ?? 'student',
-          id:profile.id.toString(),
-          image: profile.picture,
-        }
-      },
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      
-    }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'text' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials: Credentials | undefined) {
         await connectMongo();
-        const user = await User.findOne({ email: credentials?.email }) as UserType | null;
+        const user = await User.findOne({ username: credentials?.username }) as UserType | null;
 
-        if (user && credentials?.password === user.password) {
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            username: user.username,
-            enrolledCourses: user.enrolledCourses,
-            role: 'student', // or fetch the role from the database if available
-          };
+        if (user && credentials?.password) {
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+          if (isPasswordValid) {
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              username: user.username,
+              // enrolledCourses: user.enrolledCourses,
+              role: user.role, // fetch the role from the database
+            };
+          }
         }
 
-        throw new Error('Invalid email or password');
+        throw new Error('Invalid username or password');
       },
     }),
   ],
@@ -70,18 +56,17 @@ const options: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-       // token._id = user.id;
-        token.role=user.role;
-      }
+      // if (user) {
+      //   token.role = (user as UserType).role;
+      // }
       return token;
     },
     async session({ session, token }) {
-      
-      if (session.user) session.user.role=token.role;
+      // if (session.user) {
+      //   session.user.role = token.role;
+      // }
       return session;
     },
-   
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
