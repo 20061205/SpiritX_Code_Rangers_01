@@ -1,10 +1,13 @@
 'use client';
 
+
 import { useState, useEffect } from 'react';
+
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+
 import { toast } from 'react-hot-toast';
 
 interface FormData {
@@ -173,6 +176,7 @@ const SignupPage = () => {
       });
 
       const data = await response.json();
+
 
       if (!response.ok) {
         // Handle specific error cases
@@ -609,8 +613,11 @@ const SignupPage = () => {
           </p>
         </div>
       </div>
+
     </div>
   );
 };
 
+
 export default SignupPage;
+

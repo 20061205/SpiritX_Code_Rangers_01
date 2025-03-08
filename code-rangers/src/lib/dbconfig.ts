@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 
+
 const MONGODB_URI = process.env.MONGO_URL || 'mongodb://localhost:27017/code_rangers';
 
 if (!MONGODB_URI) {
@@ -24,5 +25,6 @@ async function connectMongo() {
     throw error;
   }
 }
+
 
 export default connectMongo;
