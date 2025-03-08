@@ -3,36 +3,83 @@ import bcrypt from 'bcryptjs';
 import connectMongo from '@/lib/dbconfig';
 import User from '@/models/user';
 
-export const POST = async (req: NextRequest) => {
+export async function POST(req: NextRequest) {
   try {
-    const { email, firstName, lastName, password, role, passcode, profilePicture, contact } = await req.json();
+    const { firstName, lastName, email, username, password } = await req.json();
 
+    // Validate required fields
+    if (!firstName || !lastName || !email || !username || !password) {
+      return NextResponse.json(
+        { message: 'All fields are required' },
+        { status: 400 }
+      );
+    }
+
+    // Connect to MongoDB
     await connectMongo();
-    const existingUser = await User.findOne({ email });
 
-    if (existingUser) {
-      return new NextResponse(JSON.stringify({ error: 'User already exists' }), { status: 400 });
+    // Check if email already exists
+    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    if (existingEmail) {
+      return NextResponse.json(
+        { message: 'Email already registered' },
+        { status: 400 }
+      );
     }
 
-    if ((role === "Instructor" || role === "Admin") && passcode !== "your_admin_passcode") {
-      return new NextResponse(JSON.stringify({ error: 'Invalid passcode' }), { status: 400 });
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return NextResponse.json(
+        { message: 'Username already taken' },
+        { status: 400 }
+      );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({
-      name: { firstName, lastName },
-      email,
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    // Create new user
+    const newUser = await User.create({
+      firstName,
+      lastName,
+      email: email.toLowerCase(),
+      username,
       password: hashedPassword,
-      role,
-      profilePicture,
-      contact,
+     
     });
 
-    await newUser.save();
+    // Remove password from response
+    const userResponse = {
+      id: newUser._id,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      email: newUser.email,
+      username: newUser.username,
+      
+    };
 
-    return new NextResponse(JSON.stringify({ message: 'User created successfully' }), { status: 201 });
-  } catch (error) {
+    return NextResponse.json(
+      { message: 'User created successfully', user: userResponse },
+      { status: 201 }
+    );
+  } catch (error: any) {
     console.error('Error creating user:', error);
-    return new NextResponse(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
+    
+    // Handle mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const validationErrors = Object.values(error.errors).map(
+        (err: any) => err.message
+      );
+      return NextResponse.json(
+        { message: 'Validation error', errors: validationErrors },
+        { status: 400 }
+      );
+    }
+
+    return NextResponse.json(
+      { message: 'Internal server error' },
+      { status: 500 }
+    );
   }
-};
+}

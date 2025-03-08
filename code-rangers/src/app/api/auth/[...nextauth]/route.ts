@@ -1,10 +1,13 @@
 import User from '@/models/user';
 import connectMongo from '@/lib/dbconfig';
-
-import clientPromise from '@/lib/mongodb'; // Connect to MongoDB
-import NextAuth, { NextAuthOptions } from 'next-auth';
+import clientPromise from '@/lib/mongodb';
+import NextAuth, { 
+  NextAuthOptions, 
+  DefaultSession 
+} from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
+
 import bcrypt from 'bcryptjs';
 
 interface Credentials {
@@ -47,15 +50,17 @@ const options: NextAuthOptions = {
         }
 
         throw new Error('Invalid username or password');
+
       },
     }),
   ],
-  adapter: MongoDBAdapter(clientPromise), // Use MongoDB for storing users
+  adapter: MongoDBAdapter(clientPromise),
   session: {
     strategy: 'jwt',
   },
   callbacks: {
     async jwt({ token, user }) {
+
       // if (user) {
       //   token.role = (user as UserType).role;
       // }
@@ -65,11 +70,15 @@ const options: NextAuthOptions = {
       // if (session.user) {
       //   session.user.role = token.role;
       // }
+
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/login',
+  },
 };
 
 const handler = NextAuth(options);
-export { handler as POST, handler as GET, options as authOptions };
+export { handler as GET, handler as POST, options as authOptions };
