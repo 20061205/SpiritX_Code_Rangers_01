@@ -1,14 +1,30 @@
 import mongoose from 'mongoose';
 
-const connectMongo = async () => {
-  console.log("Connecting to mongo");
-  if (mongoose.connection.readyState === 1) {
-    console.log("Already connected to mongo");
-    return mongoose.connection.asPromise();
-   
+
+const MONGODB_URI = process.env.MONGO_URL || 'mongodb://localhost:27017/code_rangers';
+
+if (!MONGODB_URI) {
+  throw new Error('Please define the MONGODB_URI environment variable');
+}
+
+async function connectMongo() {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      return mongoose.connection;
+    }
+    
+    const opts = {
+      bufferCommands: false,
+    };
+
+    await mongoose.connect(MONGODB_URI, opts);
+    console.log('Connected to MongoDB');
+    return mongoose.connection;
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
+    throw error;
   }
-  console.log("Alrjzdnljy connected to mongo");
-  return mongoose.connect(process.env.MONGO_URL as string);
-};
+}
+
 
 export default connectMongo;
