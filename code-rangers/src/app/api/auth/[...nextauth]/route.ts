@@ -1,3 +1,4 @@
+import User from '@/models/user';
 import connectMongo from '@/lib/dbconfig';
 import clientPromise from '@/lib/mongodb';
 import NextAuth, { 
@@ -5,82 +6,51 @@ import NextAuth, {
   DefaultSession 
 } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import GoogleProvider from 'next-auth/providers/google';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-import { GoogleProfile } from 'next-auth/providers/google';
-import bcrypt from 'bcryptjs';
-import User from '@/models/user';
 
-// Extend the built-in session types
-declare module 'next-auth' {
-  interface User extends NextAuthUser {
-    role?: string;
-    username?: string;
-  }
-  
-  interface Session {
-    user: {
-      role?: string;
-      username?: string;
-    } & DefaultSession['user']
-  }
+import bcrypt from 'bcryptjs';
+
+interface Credentials {
+  username: string;
+  password: string;
 }
 
-export const runtime = 'nodejs';
+interface UserType {
+  _id: string;
+  email: string;
+  username: string;
+  password: string;
+  // enrolledCourses: string[];
+  role: string;
+}
 
 const options: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      profile(profile: GoogleProfile) {
-        return {
-          ...profile,
-          role: profile.role ?? 'student',
-          id: profile.sub,
-          image: profile.picture,
-        }
-      },
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
-        email: { label: 'Email', type: 'email' },
+        username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
-        try {
-          if (!credentials?.email || !credentials?.password) {
-            throw new Error('Please provide both email and password');
-          }
+      async authorize(credentials: Credentials | undefined) {
+        await connectMongo();
+        const user = await User.findOne({ username: credentials?.username }) as UserType | null;
 
-          await connectMongo();
-
-          // Find user by email
-          const user = await User.findOne({ email: credentials.email.toLowerCase() });
-          
-          if (!user) {
-            throw new Error('No user found with this email');
-          }
-
-          // Compare passwords
+        if (user && credentials?.password) {
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-          if (!isPasswordValid) {
-            throw new Error('Invalid password');
+          if (isPasswordValid) {
+            return {
+              id: user._id.toString(),
+              email: user.email,
+              username: user.username,
+              // enrolledCourses: user.enrolledCourses,
+              role: user.role, // fetch the role from the database
+            };
           }
-
-          // Return user without password
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            name: `${user.firstName} ${user.lastName}`,
-            username: user.username,
-            role: user.role || 'student'
-          };
-        } catch (error: any) {
-          throw new Error(error.message || 'Authentication failed');
         }
+
+        throw new Error('Invalid username or password');
+
       },
     }),
   ],
@@ -90,15 +60,17 @@ const options: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
+
+      // if (user) {
+      //   token.role = (user as UserType).role;
+      // }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.role = token.role;
-      }
+      // if (session.user) {
+      //   session.user.role = token.role;
+      // }
+
       return session;
     },
   },

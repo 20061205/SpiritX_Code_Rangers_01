@@ -9,12 +9,11 @@ export const GET = async () => {
     const users = await User.find();
     return new NextResponse(JSON.stringify(users), { status: 200 });
   } catch (error: any) {
-    return new NextResponse("Error in fetching users" + error.message, {
+    return new NextResponse("Error in fetching users: " + error.message, {
       status: 500,
     });
   }
 };
-
 
 export const PATCH = async (request: Request) => {
   try {
@@ -35,7 +34,8 @@ export const PATCH = async (request: Request) => {
       });
     }
 
-    const updatedUser = await User.findOneAndUpdate(
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
       { username: newUsername },
       { new: true }
     );
@@ -52,7 +52,7 @@ export const PATCH = async (request: Request) => {
       { status: 200 }
     );
   } catch (error: any) {
-    return new NextResponse("Error in updating user" + error.message, {
+    return new NextResponse("Error in updating user: " + error.message, {
       status: 500,
     });
   }
@@ -77,9 +77,7 @@ export const DELETE = async (request: Request) => {
 
     await connectMongo();
 
-    const deletedUser = await User.findByIdAndDelete(
-      new Types.ObjectId(userId)
-    );
+    const deletedUser = await User.findByIdAndDelete(userId);
 
     if (!deletedUser) {
       return new NextResponse(
@@ -93,7 +91,7 @@ export const DELETE = async (request: Request) => {
       { status: 200 }
     );
   } catch (error: any) {
-    return new NextResponse("Error in deleting user" + error.message, {
+    return new NextResponse("Error in deleting user: " + error.message, {
       status: 500,
     });
   }

@@ -1,10 +1,10 @@
 import mongoose from 'mongoose';
 
-
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: [true, 'First name is required'],
+
   },
   lastName: {
     type: String,
@@ -32,6 +32,10 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  role: {
+    type: String,
+    default: 'student',
   },
 
 //   contact: {

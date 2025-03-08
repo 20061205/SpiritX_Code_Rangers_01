@@ -24,7 +24,10 @@ async function connectMongo() {
     console.error('Error connecting to MongoDB:', error);
     throw error;
   }
-}
+
+  console.log("Alrjzdnljy connected to mongo");
+  return mongoose.connect(process.env.MONGO_URI as string);
+};
 
 
 export default connectMongo;
