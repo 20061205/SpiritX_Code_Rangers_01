@@ -54,9 +54,8 @@ const options: NextAuthOptions = {
       },
     }),
   ],
-  adapter: MongoDBAdapter(clientPromise),
-  session: {
-    strategy: 'jwt',
+  pages: {
+    signIn: '/login',
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -67,16 +66,17 @@ const options: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // if (session.user) {
-      //   session.user.role = token.role;
-      // }
-
+      if (session.user) {
+        session.user.name = token.username as string; // Use username as display name
+        // @ts-ignore
+        session.user.username = token.username;
+      }
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: '/login',
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 };
 
