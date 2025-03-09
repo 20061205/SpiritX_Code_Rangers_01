@@ -51,7 +51,7 @@ A modern, secure authentication system built with Next.js, featuring a beautiful
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/your-username/code-rangers.git
+git clone https://github.com/your-username/SpiritX_Code_Rangers_01.git
 cd code-rangers
 ```
 
