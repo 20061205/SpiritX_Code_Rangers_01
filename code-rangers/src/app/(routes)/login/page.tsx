@@ -129,12 +129,21 @@ const LoginPage = () => {
             {loading ? "Loading..." : "Log in"}
           </button>
         </form>
-        <p className={`mt-6 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-          New user?{" "}
-          <a href="/signup" className={`hover:underline ${isDarkMode ? 'text-gray-300' : 'text-blue-500'}`}>
-            Sign up
+
+        <div className="flex flex-col items-center gap-4 mt-6">
+          <a
+            href="/forgot-password"
+            className={`text-sm hover:underline ${isDarkMode ? 'text-gray-300' : 'text-blue-500'}`}
+          >
+            Forgot Password?
           </a>
-        </p>
+          <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            New user?{" "}
+            <a href="/signup" className={`hover:underline ${isDarkMode ? 'text-gray-300' : 'text-blue-500'}`}>
+              Sign up
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
