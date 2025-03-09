@@ -1,13 +1,9 @@
 import User from '@/models/user';
 import connectMongo from '@/lib/dbconfig';
 import clientPromise from '@/lib/mongodb';
-import NextAuth, { 
-  NextAuthOptions, 
-  DefaultSession 
-} from 'next-auth';
+import NextAuth, { NextAuthOptions, Session } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-
 import bcrypt from 'bcryptjs';
 
 interface Credentials {
@@ -20,8 +16,20 @@ interface UserType {
   email: string;
   username: string;
   password: string;
-  // enrolledCourses: string[];
   role: string;
+  firstName: string;
+  lastName: string;
+}
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+      username?: string | null;
+    };
+  }
 }
 
 const options: NextAuthOptions = {
@@ -36,6 +44,10 @@ const options: NextAuthOptions = {
         await connectMongo();
         const user = await User.findOne({ username: credentials?.username }) as UserType | null;
 
+        if (!user) {
+          throw new Error('No user found.');
+        }
+
         if (user && credentials?.password) {
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
           if (isPasswordValid) {
@@ -43,14 +55,16 @@ const options: NextAuthOptions = {
               id: user._id.toString(),
               email: user.email,
               username: user.username,
-              // enrolledCourses: user.enrolledCourses,
-              role: user.role, // fetch the role from the database
+              role: user.role,
+              firstName: user.firstName,
+              lastName: user.lastName,
             };
           }
+
+          throw new Error('Invalid password');
         }
 
         throw new Error('Invalid username or password');
-
       },
     }),
   ],
@@ -59,17 +73,20 @@ const options: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user }) {
-
-      // if (user) {
-      //   token.role = (user as UserType).role;
-      // }
+      if (user) {
+        token.role = (user as unknown as UserType).role;
+        token.name = `${(user as unknown as UserType).firstName} ${(user as unknown as UserType).lastName}`;
+        token.email = (user as unknown as UserType).email;
+        token.username = (user as unknown as UserType).username;
+      }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.name = token.username as string; // Use username as display name
-        // @ts-ignore
-        session.user.username = token.username;
+        //session.user.role = token.role;
+        session.user.name = token.name;
+        session.user.email = token.email;
+        session.user.username = token.username as string;
       }
       return session;
     },
