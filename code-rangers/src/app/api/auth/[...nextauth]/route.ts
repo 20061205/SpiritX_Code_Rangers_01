@@ -68,9 +68,8 @@ const options: NextAuthOptions = {
       },
     }),
   ],
-  adapter: MongoDBAdapter(clientPromise),
-  session: {
-    strategy: 'jwt',
+  pages: {
+    signIn: '/login',
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -92,9 +91,9 @@ const options: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
-  pages: {
-    signIn: '/login',
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 };
 

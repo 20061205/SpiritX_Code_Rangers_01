@@ -202,6 +202,10 @@ const SignupPage = () => {
       }
 
       toast.success('Account created successfully!');
+
+      // Show confirmation dialog
+      const confirmed = window.confirm('Account created successfully! You will be redirected to the login page.');
+
       
       // Redirect after 2 seconds
       setTimeout(() => {
